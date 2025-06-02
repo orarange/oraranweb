@@ -4,6 +4,7 @@ const app = express();
 const fs = require('fs');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
+const time = new Date().toLocaleString('ja-JP', { timeZone: 'Asia/Tokyo' });
 
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
@@ -26,7 +27,6 @@ function logRequest(req, res) {
     // x-forwarded-for は信頼できるプロキシ経由でのみ使用してください
     const ip = req.headers['x-forwarded-for'] || req.connection.remoteAddress;
     const ua = req.headers['user-agent'];
-    const time = new Date().toISOString();
 
     // ログのフォーマットを整える
     const logData = `${time} - [${ip}] - ${req.method} - ${req.originalUrl} - ${res.statusCode} - ${ua}\n`;
@@ -64,8 +64,8 @@ app.use('/tracker', tracker);
 app.use('/privacy', privacy);
 //app.use('/admin', admin) // 必要に応じて有効化
 
-app.use("*", (req, res) => {
-    res.redirect('/');
+app.use((req, res, next) => {
+    res.status(404).send('404 Not Found');
 });
 
 app.listen(8080, function () { console.log('Example app listening on port 8080!') });
