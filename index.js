@@ -16,7 +16,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
 index = require('./router/index');
-//admin = require('./router/admin');
 tracker = require('./router/tracker');
 privacy = require('./router/privacy');
 auth = require('./router/auth');

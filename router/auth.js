@@ -3,9 +3,6 @@ const passport = require('passport');
 const session = require('express-session');
 const router = express.Router();
 const path = require('path');
-const mongoose = require('mongoose');
-const UserData = require('../models/userdata');
-const {getUserData, createUserData, updateUserData, deleteUserData} = require('./functions/userdata');
 
 
 router.use(session({
@@ -62,14 +59,7 @@ router.get('/google',
 router.get('/google/callback',
     passport.authenticate('google', { failureRedirect: '/login' }),
     async (req, res) => {
-        const userData = getUserData(req.user.emails[0].value);
-        console.log(userData);
-        if (userData) {
-            res.redirect('/');
-        } /*else {
-            const newUserData = await createUserData(req.user);
-            res.redirect('/');
-        }*/
+        res.redirect('/');
     }
 );
 

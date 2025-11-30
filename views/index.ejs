@@ -31,6 +31,7 @@
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="css/style.css">
 </head>
 
@@ -80,11 +81,153 @@
 
     </main>
     <footer>
-        <p>Copyright © 2023~ by おららんげちゃん. Proudly created with おららんのうぇぶさいと</p>
-        <a href="/privacy">Privacy Policy</a>
-        <a href="">Terms of Use</a>
-        </p>
-    </footer>
-</body>
+        <div class="copyright">Copyright © 2023~ by おららんげちゃん. Proudly created with おららんのうぇぶさいと</div>
+        <div class="footer-links">
+            <a href="/privacy">Privacy Policy</a>
+            <a href="">Terms of Use</a>
+        </div>
+    <div id="cookie-banner">
+        <p>このサイトでは、Cookieを使用してユーザー体験を向上させています。同意しますか？</p>
+        <div id="cookie-buttons">
+            <button id="accept-cookies">同意する</button>
+            <button id="reject-cookies">拒否する</button>
+            <button id="customize-cookies">詳細設定</button>
+        </div>
+    </div>
+    <div id="cookie-modal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h3>Cookie設定</h3>
+            <p>各Cookieの使用を個別に設定できます。</p>
+            <label><input type="checkbox" id="session-cookie" checked> セッションCookie (ログイン管理)</label><br>
+            <label><input type="checkbox" id="oauth-cookie" checked> Google OAuth Cookie (認証)</label><br>
+            <label><input type="checkbox" id="access-cookie" checked> アクセスCookie (ログ管理)</label><br>
+            <label><input type="checkbox" id="adsense-cookie" checked> AdSense Cookie (広告)</label><br>
+            <label><input type="checkbox" id="analytics-cookie" checked> Analytics Cookie (解析)</label><br>
+            <button id="save-settings">設定を保存</button>
+        </div>
+    </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const banner = document.getElementById('cookie-banner');
+            const modal = document.getElementById('cookie-modal');
+            const closeBtn = document.querySelector('.close');
+            const acceptBtn = document.getElementById('accept-cookies');
+            const rejectBtn = document.getElementById('reject-cookies');
+            const customizeBtn = document.getElementById('customize-cookies');
+            const saveBtn = document.getElementById('save-settings');
+            const checkboxes = document.querySelectorAll('#cookie-modal input[type="checkbox"]');
 
-</html>
+            // 設定を読み込み
+            loadSettings();
+
+            // Cookie使用制御
+            controlCookies();
+
+            // すでに同意済みかチェック
+            if (!localStorage.getItem('cookiesAccepted') && !localStorage.getItem('cookiesRejected')) {
+                banner.classList.add('show');
+            }
+
+            // 同意ボタン
+            acceptBtn.addEventListener('click', function() {
+                checkboxes.forEach(cb => cb.checked = true);
+                saveSettings();
+                localStorage.setItem('cookiesAccepted', 'true');
+                banner.classList.remove('show');
+                controlCookies();
+            });
+
+            // 拒否ボタン
+            rejectBtn.addEventListener('click', function() {
+                checkboxes.forEach(cb => cb.checked = false);
+                saveSettings();
+                localStorage.setItem('cookiesRejected', 'true');
+                banner.classList.remove('show');
+                controlCookies();
+            });
+
+            // 詳細設定ボタン
+            customizeBtn.addEventListener('click', function() {
+                modal.style.display = 'block';
+            });
+
+            // 閉じるボタン
+            closeBtn.addEventListener('click', function() {
+                modal.style.display = 'none';
+            });
+
+            // 保存ボタン
+            saveBtn.addEventListener('click', function() {
+                saveSettings();
+                modal.style.display = 'none';
+                banner.classList.remove('show');
+                controlCookies();
+            });
+
+            // モーダル外クリックで閉じる
+            window.addEventListener('click', function(event) {
+                if (event.target == modal) {
+                    modal.style.display = 'none';
+                }
+            });
+
+            function saveSettings() {
+                const settings = {};
+                checkboxes.forEach(cb => {
+                    settings[cb.id] = cb.checked;
+                });
+                localStorage.setItem('cookieSettings', JSON.stringify(settings));
+            }
+
+            function loadSettings() {
+                const settings = JSON.parse(localStorage.getItem('cookieSettings') || '{}');
+                checkboxes.forEach(cb => {
+                    cb.checked = settings[cb.id] !== false; // デフォルトtrue
+                });
+            }
+
+            function controlCookies() {
+                const settings = JSON.parse(localStorage.getItem('cookieSettings') || '{}');
+
+                // AdSense制御
+                if (settings['adsense-cookie']) {
+                    if (!document.querySelector('script[src*="googlesyndication"]')) {
+                        const script = document.createElement('script');
+                        script.async = true;
+                        script.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-4006009538073290';
+                        script.crossOrigin = 'anonymous';
+                        document.head.appendChild(script);
+                    }
+                } else {
+                    const script = document.querySelector('script[src*="googlesyndication"]');
+                    if (script) script.remove();
+                }
+
+                // Analytics制御 (仮にgtagを使用)
+                if (settings['analytics-cookie']) {
+                    if (!window.gtag) {
+                        // Google Analyticsスクリプト追加 (実際のGAコードに置き換え)
+                        const script1 = document.createElement('script');
+                        script1.async = true;
+                        script1.src = 'https://www.googletagmanager.com/gtag/js?id=GA_MEASUREMENT_ID';
+                        document.head.appendChild(script1);
+
+                        const script2 = document.createElement('script');
+                        script2.innerHTML = `
+                            window.dataLayer = window.dataLayer || [];
+                            function gtag(){dataLayer.push(arguments);}
+                            gtag('js', new Date());
+                            gtag('config', 'GA_MEASUREMENT_ID');
+                        `;
+                        document.head.appendChild(script2);
+                    }
+                } else {
+                    // Analytics無効化 (難しいのでアラート)
+                    if (window.gtag) {
+                        alert('Analyticsが無効化されました。ページをリロードしてください。');
+                    }
+                }
+            }
+        });
+    </script>
